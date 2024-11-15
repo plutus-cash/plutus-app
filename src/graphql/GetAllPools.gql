@@ -1,0 +1,24 @@
+query GetAllPools {
+  pools(first: 100, where: { totalValueLockedUSD_gt: 10000, totalValueLockedUSD_lt: 1000000000 }) {
+    id
+    totalValueLockedUSD
+    token0 {
+      id
+      decimals
+      name
+      symbol
+      totalValueLocked
+    }
+    token1 {
+      id
+      name
+      decimals
+      symbol
+      totalValueLocked
+    }
+    tick
+    feeTier
+    token0Price
+    token1Price
+  }
+}
