@@ -15,7 +15,7 @@ export function PositionCards({ positions }: PositionCardsProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
       {positions.map((position, index) => (
-        <Card key={index} className="bg-muted">
+        <Card key={index} className="">
           <CardContent className="p-6">
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground">{position.label}</span>

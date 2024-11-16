@@ -1,21 +1,15 @@
 "use client";
 
 import { AssetTable } from "./AssetTable";
-import { usePool } from "@/app/_context/PoolContext";
+import { usePoolStore } from "@/store/usePoolStore";
+import type { Pool } from "@/types";
 
 interface PoolSelectorProps {
-  pools: Array<{
-    name: string;
-    tvl: string;
-    feeTier: string;
-    rewards?: string;
-    apr?: string;
-    apy?: string;
-  }>;
+  pools: Array<Pool>;
 }
 
 export function PoolSelector({ pools }: PoolSelectorProps) {
-  const { setSelectedPool } = usePool();
+  const setSelectedPool = usePoolStore((state) => state.setSelectedPool);
 
   return <AssetTable pools={pools} itemsPerPage={10} onSelectedPool={setSelectedPool} />;
 }

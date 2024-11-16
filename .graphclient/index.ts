@@ -5309,7 +5309,7 @@ const merger = new(BareMerger as any)({
         store: rootStore.child('bareMerger')
       })
 const documentHashMap = {
-        "1bd99524e8b3b09024daef32f9a7cfe42d0641cdb2ff86945252f0561ea6d6a8": GetAllPoolsDocument
+        "23a84e95deba95cd2609b67245f341bab79d54e37c283102bf90823de26cb31f": GetAllPoolsDocument
       }
 additionalEnvelopPlugins.push(usePersistedOperations({
         getPersistedOperation(key) {
@@ -5336,7 +5336,7 @@ additionalEnvelopPlugins.push(usePersistedOperations({
           return printWithCache(GetAllPoolsDocument);
         },
         location: 'GetAllPoolsDocument.graphql',
-        sha256Hash: '1bd99524e8b3b09024daef32f9a7cfe42d0641cdb2ff86945252f0561ea6d6a8'
+        sha256Hash: '23a84e95deba95cd2609b67245f341bab79d54e37c283102bf90823de26cb31f'
       }
     ];
     },
@@ -5405,6 +5405,8 @@ export const GetAllPoolsDocument = gql`
   pools(
     first: 100
     where: {totalValueLockedUSD_gt: 10000, totalValueLockedUSD_lt: 1000000000}
+    orderBy: totalValueLockedUSD
+    orderDirection: desc
   ) {
     id
     totalValueLockedUSD

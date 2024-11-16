@@ -1,11 +1,11 @@
 "use client";
 
-import { wagmiAdapter, projectId } from "@/config";
+import { wagmiAdapter, projectId, networks } from "@/config";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createAppKit } from "@reown/appkit/react";
-import { mainnet, arbitrum, base, polygon, optimism, avalanche } from "@reown/appkit/networks";
 import React, { type ReactNode } from "react";
 import { cookieToInitialState, WagmiProvider, type Config } from "wagmi";
+import { optimism } from "viem/chains";
 
 // Set up queryClient
 const queryClient = new QueryClient();
@@ -16,19 +16,20 @@ if (!projectId) {
 
 // Set up metadata
 const metadata = {
-  name: "appkit-example",
-  description: "AppKit Example",
-  url: "https://appkitexampleapp.com", // origin must match your domain & subdomain
+  name: "next-reown-appkit",
+  description: "next-reown-appkit",
+  url: "https://github.com/0xonerb/next-reown-appkit-ssr", // origin must match your domain & subdomain
   icons: ["https://avatars.githubusercontent.com/u/179229932"],
 };
 
 // Create the modal
-createAppKit({
+export const modal = createAppKit({
   adapters: [wagmiAdapter],
   projectId,
-  networks: [mainnet, arbitrum, avalanche, base, optimism, polygon],
-  defaultNetwork: mainnet,
+  networks,
+  defaultNetwork: optimism,
   metadata: metadata,
+  themeMode: "light",
   features: {
     analytics: true, // Optional - defaults to your Cloud configuration
   },

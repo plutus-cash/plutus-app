@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import { Toaster } from "@/components/ui/toaster";
 
 import { headers } from "next/headers"; // added
 import ContextProvider from "@/context";
@@ -35,6 +36,7 @@ export default function RootLayout({
         <ContextProvider cookies={cookies}>
           <Navigation />
           {children}
+          <Toaster />
         </ContextProvider>
       </body>
     </html>

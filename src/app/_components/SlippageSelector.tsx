@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 interface SlippageSelectorProps {
-  value: string;
+  value: number;
   onChange: (value: string) => void;
 }
 
@@ -16,7 +16,7 @@ export function SlippageSelector({ value, onChange }: SlippageSelectorProps) {
       <label className="text-sm font-medium">Slippage (%)</label>
       <div className="flex items-center space-x-2 mt-2">
         {PRESET_VALUES.map((preset) => (
-          <Button key={preset} variant={value === preset ? "default" : "outline"} size="sm" onClick={() => onChange(preset)}>
+          <Button key={preset} variant={value === Number(preset) ? "default" : "outline"} size="sm" onClick={() => onChange(preset)}>
             {preset}
           </Button>
         ))}

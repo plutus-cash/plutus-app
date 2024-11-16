@@ -1,5 +1,5 @@
 query GetAllPools {
-  pools(first: 100, where: { totalValueLockedUSD_gt: 10000, totalValueLockedUSD_lt: 1000000000 }) {
+  pools(first: 100, where: { totalValueLockedUSD_gt: 10000, totalValueLockedUSD_lt: 1000000000 }, orderBy: totalValueLockedUSD, orderDirection: desc) {
     id
     totalValueLockedUSD
     token0 {

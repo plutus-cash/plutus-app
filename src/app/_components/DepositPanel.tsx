@@ -1,128 +1,163 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
-import { ChevronDown } from "lucide-react";
 import { SlippageSelector } from "./SlippageSelector";
-import { usePool } from "@/app/_context/PoolContext";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { TICK_SPACINGS, priceToTick, nearestUsableTick } from "@/app/_utils/ticks";
+import { PriceRangeSelector } from "./PriceRangeSelector";
+import { TokenSelector } from "./TokenSelector";
+import { useAccount } from "wagmi";
+import { usePoolStore } from "@/store/usePoolStore";
+import { Pool } from "@/types";
+import { DepositFlowModal } from "./DepositFlow/DepositFlowModal";
+import { useTokenBalances } from "@/hooks/useTokenBalances";
 
-interface DepositState {
-  asset: string;
+export interface DepositState {
+  pool: Pool | undefined;
+  token: string;
+  decimals: number;
+  tokenAddress: string;
   amount: string;
+  chain: string;
   minPrice: string;
   maxPrice: string;
-  autoRebalance: boolean;
-  autoRewards: boolean;
-  slippage: string;
+  tickLower: number;
+  tickUpper: number;
+  slippage: number;
+  balance?: string;
 }
 
-interface Token {
-  symbol: string;
-  color: string;
-}
-
-const popularTokens: Token[] = [
-  { symbol: "USDC", color: "bg-blue-500" },
-  { symbol: "USDT", color: "bg-green-500" },
-  { symbol: "DAI", color: "bg-yellow-500" },
-  { symbol: "WETH", color: "bg-purple-500" },
-  { symbol: "WBTC", color: "bg-orange-500" },
-];
+const initialState: DepositState = {
+  pool: undefined,
+  token: "",
+  tokenAddress: "",
+  decimals: 18,
+  amount: "",
+  chain: "",
+  minPrice: "0.9999",
+  maxPrice: "1.0",
+  tickLower: 0,
+  tickUpper: 0,
+  slippage: 0.5,
+};
 
 export function DepositPanel() {
-  const { selectedPool } = usePool();
-  const [state, setState] = useState<DepositState | undefined>(undefined);
+  const selectedPool = usePoolStore((state) => state.selectedPool);
+  const [depositState, setDepositState] = useState<DepositState>(initialState);
+  const { address: userAddress, isConnected } = useAccount();
+  const [isDepositFlowOpen, setIsDepositFlowOpen] = useState(false);
+  const { data: tokens } = useTokenBalances(userAddress);
 
   useEffect(() => {
     if (selectedPool) {
-      setState({
-        asset: selectedPool.name,
-        amount: "",
-        minPrice: "0.99990",
-        maxPrice: "1.00000",
-        autoRebalance: false,
-        autoRewards: false,
-        slippage: "0.5",
-      });
+      setDepositState((prev) => ({
+        ...prev,
+        pool: selectedPool,
+      }));
     }
   }, [selectedPool]);
 
-  const handleInputChange = useCallback((field: keyof DepositState, value: string | boolean) => {
-    setState((prev) => prev && { ...prev, [field]: value });
+  const handleInputChange = useCallback((field: keyof DepositState, value: string | number) => {
+    setDepositState((prev) => ({ ...prev, [field]: value }));
   }, []);
 
-  if (!state) {
-    return (
-      <Card>
-        <CardContent className="p-6">
-          <div className="text-center">Please select a pool first</div>
-        </CardContent>
-      </Card>
-    );
-  }
+  const handlePriceRangeChange = useCallback(
+    (min: string, max: string) => {
+      const feeTier = depositState.pool?.feeTier ?? 3000;
+      const tickLower = nearestUsableTick(priceToTick(min), TICK_SPACINGS[feeTier]);
+      const tickUpper = nearestUsableTick(priceToTick(max), TICK_SPACINGS[feeTier]);
+
+      setDepositState((prev) => ({
+        ...prev,
+        minPrice: min,
+        maxPrice: max,
+        tickLower,
+        tickUpper,
+      }));
+    },
+    [depositState.pool?.feeTier]
+  );
+
+  const selectedToken = useMemo(() => {
+    if (!tokens || !depositState.tokenAddress || !depositState.chain) return null;
+    return tokens.find((token) => token.address.toLowerCase() === depositState.tokenAddress.toLowerCase() && token.chain === depositState.chain);
+  }, [tokens, depositState.tokenAddress, depositState.chain]);
+
+  const handleMaxAmount = useCallback(() => {
+    if (!selectedToken) return;
+    handleInputChange("amount", selectedToken.balance.toString());
+  }, [selectedToken, handleInputChange]);
 
   return (
     <Card>
       <CardContent className="p-6 space-y-6">
-        <div className="flex justify-between items-center">
-          <h3 className="text-lg font-medium">{selectedPool?.name ?? "Select a pool"}</h3>
-          <Button variant="outline" size="sm">
-            View farm
-          </Button>
-        </div>
+        {!depositState.pool ? (
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg font-medium">Select a pool</h3>
+            <Button variant="outline" size="sm">
+              View farm
+            </Button>
+          </div>
+        ) : (
+          <>
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <div className="flex -space-x-2">
+                  <div className="w-6 h-6 rounded-full bg-blue-500 ring-2 ring-white" />
+                  <div className="w-6 h-6 rounded-full bg-blue-500 ring-2 ring-white" />
+                </div>
+                <div className="font-medium">
+                  {depositState.pool.token0.symbol}/{depositState.pool.token1.symbol}
+                </div>
+              </div>
 
-        <div className="space-y-4">
-          <div>
-            <label className="text-sm font-medium">Token to send</label>
-            <div className="flex items-center mt-2 space-x-2">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="w-full justify-between">
-                    <span className="flex items-center">
-                      <span className={`w-6 h-6 rounded-full ${popularTokens.find((t) => t.symbol === state.asset)?.color || "bg-gray-500"} mr-2`} />
-                      USDC
-                    </span>
-                    <ChevronDown className="w-4 h-4 opacity-50" />
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Select token</label>
+                {isConnected && userAddress ? (
+                  <TokenSelector
+                    userAddress={userAddress}
+                    selectedTokenAddress={depositState.tokenAddress}
+                    onSelect={(token) => {
+                      handleInputChange("token", token.symbol);
+                      handleInputChange("tokenAddress", token.address);
+                      handleInputChange("chain", token.chain ?? "");
+                      handleInputChange("decimals", token.decimals);
+                    }}
+                  />
+                ) : (
+                  <div className="p-4 text-center text-gray-500">Please connect your wallet to view tokens</div>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <label className="text-sm font-medium">{depositState.token || "Token"} amount</label>
+                  <label className="text-sm text-gray-500">Balance: {selectedToken ? Number(selectedToken.balance).toFixed(4) : "0"}</label>
+                </div>
+                <div className="flex space-x-2">
+                  <Input type="number" placeholder="0.00" value={depositState.amount} onChange={(e) => handleInputChange("amount", e.target.value)} className="flex-1" />
+                  <Button variant="outline" size="sm" className="whitespace-nowrap" onClick={handleMaxAmount}>
+                    MAX
                   </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-[200px]">
-                  {popularTokens.map((token) => (
-                    <DropdownMenuItem key={token.symbol} onClick={() => handleInputChange("asset", token.symbol)} className="cursor-pointer">
-                      <span className="flex items-center">
-                        <span className={`w-6 h-6 rounded-full ${token.color} mr-2`} />
-                        {token.symbol}
-                      </span>
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <Input placeholder="0" value={state.amount} onChange={(e) => handleInputChange("amount", e.target.value)} />
-              <Button variant="outline" size="sm">
-                MAX
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <PriceRangeSelector minPrice={depositState.minPrice} maxPrice={depositState.maxPrice} onPriceChange={handlePriceRangeChange} />
+
+              <SlippageSelector value={depositState.slippage} onChange={(value) => handleInputChange("slippage", value)} />
+
+              <Button className="w-full" onClick={() => setIsDepositFlowOpen(true)}>
+                Deposit
               </Button>
             </div>
-          </div>
-
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <label className="text-sm font-medium">Automate Rebalancing</label>
-              <Switch checked={state.autoRebalance} onCheckedChange={(checked) => handleInputChange("autoRebalance", checked)} />
-            </div>
-            <div className="flex items-center justify-between">
-              <label className="text-sm font-medium">Automate Rewards</label>
-              <Switch checked={state.autoRewards} onCheckedChange={(checked) => handleInputChange("autoRewards", checked)} />
-            </div>
-          </div>
-
-          <SlippageSelector value={state.slippage} onChange={(value) => handleInputChange("slippage", value)} />
-
-          <Button className="w-full">Deposit</Button>
-        </div>
+          </>
+        )}
       </CardContent>
+      <DepositFlowModal isOpen={isDepositFlowOpen} onClose={() => setIsDepositFlowOpen(false)} depositState={depositState} />
     </Card>
   );
 }

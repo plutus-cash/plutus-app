@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeftRight, Wallet } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import { ConnectButton } from "@/components/ConnectButton";
 
 export function Navigation() {
   const pathname = usePathname();
@@ -19,7 +20,7 @@ export function Navigation() {
           <Button variant={pathname === "/" ? "default" : "ghost"} asChild>
             <Link href="/">
               <ArrowLeftRight className="w-4 h-4 mr-2" />
-              Zap
+              Deposit
             </Link>
           </Button>
           <Button variant={pathname === "/positions" ? "default" : "ghost"} asChild>
@@ -30,7 +31,7 @@ export function Navigation() {
           </Button>
         </div>
         <div className="ml-auto flex items-center space-x-4">
-          <appkit-button />
+          <ConnectButton />
         </div>
       </div>
     </nav>
