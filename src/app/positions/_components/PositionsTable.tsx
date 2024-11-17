@@ -43,9 +43,10 @@ export function PositionsTable() {
     fetchPrices();
   }, []);
 
-  const getTokenValue = (tokenAddress: string, amount: bigint, chainId: string) => {
+  const getTokenValue = (tokenAddress: string, amount: bigint, chainId: string, decimals: bigint) => {
+    console.log(tokenAddress, amount, chainId, decimals);
     const price = tokenPrices[chainId]?.[tokenAddress.toLowerCase()] ?? 0;
-    return (Number(amount) / 1e18) * price; // Assuming 18 decimals
+    return (Number(amount) / 10 ** Number(decimals)) * price;
   };
 
   // Check loading states
@@ -107,14 +108,18 @@ export function PositionsTable() {
               <TableCell>
                 <div className="space-y-1">
                   <div className="text-sm text-muted-foreground">
-                    ${formatCurrency(getTokenValue(position.token0, position.amount0, position.chainId) + getTokenValue(position.token1, position.amount1, position.chainId))}
+                    {formatCurrency(
+                      getTokenValue(position.token0, position.amount0, position.chainId, position.decimals0) + getTokenValue(position.token1, position.amount1, position.chainId, position.decimals1)
+                    )}
                   </div>
                 </div>
               </TableCell>
               <TableCell>
                 <div className="space-y-1">
                   <div className="text-sm text-muted-foreground">
-                    ${formatCurrency(getTokenValue(position.token0, position.fee0, position.chainId) + getTokenValue(position.token1, position.fee1, position.chainId))}
+                    {formatCurrency(
+                      getTokenValue(position.token0, position.fee0, position.chainId, position.decimals0) + getTokenValue(position.token1, position.fee1, position.chainId, position.decimals1)
+                    )}
                   </div>
                 </div>
               </TableCell>
@@ -140,8 +145,13 @@ export function PositionsTable() {
 }
 
 const formatCurrency = (value: number) => {
-  return new Intl.NumberFormat("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(value);
+  if (value < 0.01 && value > 0) {
+    return "<0.01$";
+  }
+  return (
+    new Intl.NumberFormat("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(value) + "$"
+  );
 };

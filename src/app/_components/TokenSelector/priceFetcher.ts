@@ -16,7 +16,7 @@ interface TokenPriceResponse {
   };
 }
 
-async function fetchTokenPrice(tokenAddress: string, chain: string): Promise<number> {
+export async function fetchTokenPrice(tokenAddress: string, chain: string): Promise<number> {
   const query = `
     query TokenSpotPrice($chain: Chain!, $address: String!) {
       token(chain: $chain, address: $address) {

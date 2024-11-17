@@ -49,6 +49,12 @@ export const tokenConfigs: Record<string, Record<string, TokenConfig>> = {
       address: "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
       decimals: 6,
     },
+    WETH: {
+      symbol: "WETH",
+      name: "Wrapped Ethereum",
+      address: "0x4200000000000000000000000000000000000006",
+      decimals: 18,
+    },
     ETH: {
       symbol: "ETH",
       name: "Ethereum",
@@ -69,6 +75,12 @@ export const tokenConfigs: Record<string, Record<string, TokenConfig>> = {
       address: "0x0000000000000000000000000000000000000000",
       decimals: 18,
     },
+    WETH: {
+      symbol: "WETH",
+      name: "Wrapped Ethereum",
+      address: "0x4200000000000000000000000000000000000006",
+      decimals: 18,
+    },
     USDT: {
       symbol: "USDT",
       name: "Tether USD",
@@ -87,6 +99,12 @@ export const tokenConfigs: Record<string, Record<string, TokenConfig>> = {
       symbol: "ETH",
       name: "Ethereum",
       address: "0x0000000000000000000000000000000000000000",
+      decimals: 18,
+    },
+    WETH: {
+      symbol: "WETH",
+      name: "Wrapped Ethereum",
+      address: "0x4200000000000000000000000000000000000006",
       decimals: 18,
     },
     USDT: {
